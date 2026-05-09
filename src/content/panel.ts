@@ -266,11 +266,12 @@ export function createPanel(onRefresh: () => void): PanelAPI {
     if (!dragging) return
     state.x = clamp(sx + e.clientX - ox, 0, window.innerWidth - PANEL_W)
     state.y = clamp(sy + e.clientY - oy, 0, window.innerHeight - el.offsetHeight)
+    el.style.right = 'auto'
     el.style.left = `${state.x}px`
     el.style.top  = `${state.y}px`
   })
 
-  document.addEventListener('mouseup', () => {
+  window.addEventListener('mouseup', () => {
     if (!dragging) return
     dragging = false
 
