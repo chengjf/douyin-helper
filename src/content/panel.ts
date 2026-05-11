@@ -252,6 +252,7 @@ export function createPanel(onRefresh: () => void): PanelAPI {
   // ── Drag ──────────────────────────────────────────────────────────────────
   const handle = el.querySelector<HTMLElement>('.dh-handle')!
   let dragging = false
+  let snapOccurred = false
   let ox = 0, oy = 0, sx = 0, sy = 0
 
   handle.addEventListener('mousedown', (e) => {
@@ -277,10 +278,13 @@ export function createPanel(onRefresh: () => void): PanelAPI {
 
     // snap to edge?
     if (state.x <= SNAP_DIST) {
-      state.collapsed = true; state.edge = 'left'
+      state.collapsed = true; state.edge = 'left'; snapOccurred = true
     } else if (state.x >= window.innerWidth - PANEL_W - SNAP_DIST) {
-      state.collapsed = true; state.edge = 'right'
+      state.collapsed = true; state.edge = 'right'; snapOccurred = true
     }
+    // Reset after current event cycle so the immediately-following click is
+    // blocked, but subsequent deliberate clicks on the collapsed tab work fine
+    if (snapOccurred) setTimeout(() => { snapOccurred = false }, 0)
 
     applyPos(el, state)
     save(state)
@@ -302,6 +306,8 @@ export function createPanel(onRefresh: () => void): PanelAPI {
 
   // ── Click collapsed tab to expand ─────────────────────────────────────────
   el.addEventListener('click', () => {
+    // Snap via mouseup fires a synthetic click immediately after — ignore it
+    if (snapOccurred) { snapOccurred = false; return }
     if (!state.collapsed) return
     state.collapsed = false
     state.x = state.edge === 'right'
